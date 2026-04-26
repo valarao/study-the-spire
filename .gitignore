@@ -1,0 +1,44 @@
+/references
+
+# Environment
+.env
+.env.*.local
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node / Next.js (web/)
+node_modules/
+.pnpm-store/
+.next/
+out/
+dist/
+.turbo/
+*.tsbuildinfo
+.vercel
+
+# JVM / Kotlin (backend/)
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+.kotlin/
+
+# .NET / C# (mod/)
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Logs and caches
+*.log
+.cache/
