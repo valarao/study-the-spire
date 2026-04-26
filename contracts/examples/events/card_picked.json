@@ -1,0 +1,19 @@
+{
+  "event_id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a02",
+  "run_id": "1776658411",
+  "type": "CARD_PICKED",
+  "occurred_at": "2026-04-26T12:40:00Z",
+  "schema_version": 1,
+  "source": "hook",
+  "game_version": "v0.103.2",
+  "game_commit": "89765e1e",
+  "is_modded": true,
+  "is_multiplayer": false,
+  "player_id": "76561198063900908",
+  "data": {
+    "card_id": "strike_plus",
+    "card_name": "Strike+",
+    "pick_source": "reward",
+    "offered_card_ids": ["defend_plus", "bash", "strike_plus"]
+  }
+}

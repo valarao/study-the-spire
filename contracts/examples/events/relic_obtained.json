@@ -1,0 +1,18 @@
+{
+  "event_id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a03",
+  "run_id": "1776658411",
+  "type": "RELIC_OBTAINED",
+  "occurred_at": "2026-04-26T12:45:30Z",
+  "schema_version": 1,
+  "source": "hook",
+  "game_version": "v0.103.2",
+  "game_commit": "89765e1e",
+  "is_modded": true,
+  "is_multiplayer": false,
+  "player_id": "76561198063900908",
+  "data": {
+    "relic_id": "burning_blood",
+    "relic_name": "Burning Blood",
+    "source": "starter"
+  }
+}

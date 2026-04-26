@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "run_id": "run_sample_abandon_003",
+  "character_class": "DEFECT",
+  "ascension": 1,
+  "seed": "QUITSEED3",
+  "status": "abandoned",
+  "started_at": "2026-04-25T20:00:00Z",
+  "ended_at": "2026-04-25T20:12:00Z",
+  "floor_reached": 4,
+  "player_id": "76561198063900908"
+}

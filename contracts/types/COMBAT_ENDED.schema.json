@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "COMBAT_ENDED data",
+  "description": "Payload for `type` = COMBAT_ENDED. Minimal v1; Milestone 16 may add damage, turns, enemy names, etc.",
+  "type": "object",
+  "required": ["floor"],
+  "additionalProperties": true,
+  "properties": {
+    "floor": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "room_type": {
+      "type": "string"
+    },
+    "victory": {
+      "type": "boolean",
+      "description": "True if the player won this combat."
+    },
+    "enemy_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "turns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "damage_taken": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ending_hp": {
+      "type": "integer"
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SlayTheSpire2RunFileV9",
+  "description": "First-pass contract for StS2 run export JSON (informally 'v9'). Based on observed Early Access dumps; expect to tighten when canonical game fields are known. Unknown top-level keys are allowed.",
+  "$comment": "Do not set additionalProperties false until real exports are mapped; game may add fields anytime during EA.",
+  "type": "object",
+  "required": ["run_id", "status"],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "description": "Optional contract marker for this JSON document."
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Stable identifier for this run within the export format."
+    },
+    "character_class": {
+      "type": "string",
+      "description": "Playable character key (game-specific)."
+    },
+    "ascension": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "seed": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["victory", "defeat", "abandoned"],
+      "description": "Normalized outcome for fixtures and tests; game exports may use different strings until normalized."
+    },
+    "started_at": {
+      "type": "string",
+      "description": "RFC 3339 / ISO 8601 timestamp when present."
+    },
+    "ended_at": {
+      "type": "string",
+      "description": "RFC 3339 / ISO 8601 timestamp when present."
+    },
+    "floor_reached": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "player_id": {
+      "type": "string"
+    },
+    "decks": {
+      "type": "array",
+      "description": "Optional snapshot of deck state when present in export.",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    }
+  }
+}

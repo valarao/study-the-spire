@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CARD_PICKED data",
+  "description": "Payload for `type` = CARD_PICKED when `data` is validated standalone. Offered cards may be added as optional fields.",
+  "type": "object",
+  "required": ["card_id"],
+  "additionalProperties": true,
+  "properties": {
+    "card_id": {
+      "type": "string",
+      "description": "Stable in-run card identifier when available."
+    },
+    "card_name": {
+      "type": "string"
+    },
+    "pick_source": {
+      "type": "string",
+      "description": "e.g. reward, shop, transform"
+    },
+    "offered_card_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RUN_STARTED data",
+  "description": "Payload for `type` = RUN_STARTED when `data` is validated standalone.",
+  "type": "object",
+  "required": ["character_class"],
+  "additionalProperties": true,
+  "properties": {
+    "character_class": {
+      "type": "string",
+      "description": "Playable character identifier (game-specific string)."
+    },
+    "seed": {
+      "type": "string",
+      "description": "Run seed when available."
+    },
+    "ascension": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

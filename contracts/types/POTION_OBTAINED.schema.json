@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "POTION_OBTAINED data",
+  "description": "Payload for `type` = POTION_OBTAINED when `data` is validated standalone.",
+  "type": "object",
+  "required": ["potion_id"],
+  "additionalProperties": true,
+  "properties": {
+    "potion_id": {
+      "type": "string"
+    },
+    "potion_name": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FLOOR_ENTERED data",
+  "description": "Payload for `type` = FLOOR_ENTERED when `data` is validated standalone.",
+  "type": "object",
+  "required": ["floor"],
+  "additionalProperties": true,
+  "properties": {
+    "floor": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "room_type": {
+      "type": "string",
+      "description": "Room or map node type when known."
+    }
+  }
+}

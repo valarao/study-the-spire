@@ -1,0 +1,351 @@
+openapi: 3.0.3
+info:
+  title: Study the Spire API
+  description: |
+    HTTP API for Study the Spire (Kairo backend). Wire formats for events and run files
+    are defined under `contracts/events/`, `contracts/types/`, and `contracts/runfile/`.
+
+    **Suggested request size limits** (implementation; see build plan): `POST /events` 64 KB;
+    `POST /events/batch` configurable; `POST /imports/run-file` 2 MB.
+
+    **Auth:** `GET /hello`, `GET /health`, and `GET /db/ping` are unauthenticated for early
+    deploys and probes. Production may add auth to `/db/ping`; document here when that lands.
+  version: 0.1.0
+
+servers:
+  - url: https://api.studythespire.app
+    description: Production (placeholder)
+  - url: http://localhost:8080
+    description: Local development
+
+tags:
+  - name: Health
+    description: Liveness and connectivity probes
+  - name: Mod
+    description: Mod and upload-token authenticated ingestion
+
+paths:
+  /hello:
+    get:
+      tags: [Health]
+      summary: Greeting
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HelloResponse"
+
+  /health:
+    get:
+      tags: [Health]
+      summary: Liveness
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /db/ping:
+    get:
+      tags: [Health]
+      summary: Database connectivity
+      description: Returns database reachability and server time. Unauthenticated in early milestones.
+      security: []
+      responses:
+        "200":
+          description: Database reachable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DbPingResponse"
+        "503":
+          description: Database unavailable
+
+  /mod/ping:
+    post:
+      tags: [Mod]
+      summary: Mod connectivity and token check
+      security:
+        - UploadTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModPingRequest"
+      responses:
+        "200":
+          description: Token valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModPingResponse"
+        "401":
+          description: Invalid or revoked upload token
+
+  /events:
+    post:
+      tags: [Mod]
+      summary: Ingest a single event
+      security:
+        - UploadTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventEnvelope"
+            examples:
+              runStarted:
+                $ref: "#/components/examples/runStartedEvent"
+      responses:
+        "200":
+          description: Event accepted (exact semantics TBD; may be 204 in implementation)
+        "400":
+          description: Validation error
+        "401":
+          description: Invalid upload token
+
+  /events/batch:
+    post:
+      tags: [Mod]
+      summary: Ingest a batch of events
+      security:
+        - UploadTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/EventEnvelope"
+              minItems: 1
+      responses:
+        "200":
+          description: Batch processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventBatchResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Invalid upload token
+
+  /imports/run-file:
+    post:
+      tags: [Mod]
+      summary: Import a completed run file (raw JSON)
+      description: |
+        Request body is the **raw StS2 run file JSON** (v9 shape). Validate against
+        `contracts/runfile/run.v9.schema.json` before upload when possible.
+      security:
+        - UploadTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunFileV9"
+      responses:
+        "200":
+          description: Run file accepted
+        "400":
+          description: Validation error
+        "401":
+          description: Invalid upload token
+
+components:
+  securitySchemes:
+    ClerkJwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Clerk-issued JWT for web-authenticated endpoints (reserved for future routes such as `/me`).
+
+    UploadTokenAuth:
+      type: http
+      scheme: bearer
+      description: |
+        User-created upload token (`stsa_live_<secret>`). Sent by the mod as
+        `Authorization: Bearer <token>`.
+
+  schemas:
+    HelloResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: the spire awaits
+
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: ok
+
+    DbPingResponse:
+      type: object
+      required: [ok, databaseTime]
+      properties:
+        ok:
+          type: boolean
+          example: true
+        databaseTime:
+          type: string
+          format: date-time
+          example: "2026-04-26T12:34:56Z"
+
+    ModPingRequest:
+      type: object
+      required: [modVersion, gameVersion]
+      properties:
+        modVersion:
+          type: string
+          example: "0.1.0"
+        gameVersion:
+          type: string
+          example: "v0.103.2"
+
+    ModPingResponse:
+      type: object
+      required: [ok, tokenName, serverVersion]
+      properties:
+        ok:
+          type: boolean
+          example: true
+        tokenName:
+          type: string
+          example: Desktop mod
+        serverVersion:
+          type: string
+          example: "0.1.0"
+
+    EventType:
+      type: string
+      enum:
+        - RUN_STARTED
+        - RUN_ENDED
+        - FLOOR_ENTERED
+        - CARD_PICKED
+        - RELIC_OBTAINED
+        - POTION_OBTAINED
+        - COMBAT_ENDED
+        - RUN_FILE_WRITTEN
+
+    EventEnvelope:
+      type: object
+      required:
+        - event_id
+        - run_id
+        - type
+        - occurred_at
+        - schema_version
+        - source
+        - game_version
+        - game_commit
+        - is_modded
+        - is_multiplayer
+        - player_id
+        - data
+      additionalProperties: false
+      properties:
+        event_id:
+          type: string
+          format: uuid
+          description: Unique event id (UUID v7 recommended).
+        run_id:
+          type: string
+          description: Game run identifier (string form).
+        type:
+          $ref: "#/components/schemas/EventType"
+        occurred_at:
+          type: string
+          format: date-time
+        schema_version:
+          type: integer
+          minimum: 1
+        source:
+          type: string
+          description: Origin of the event (e.g. hook, run_file).
+        game_version:
+          type: string
+        game_commit:
+          type: string
+        is_modded:
+          type: boolean
+        is_multiplayer:
+          type: boolean
+        player_id:
+          type: string
+          description: Stable player identifier (e.g. Steam id).
+        data:
+          type: object
+          description: Event payload; shape depends on `type` (see `contracts/types/*.schema.json`).
+
+    EventBatchResponse:
+      type: object
+      required: [accepted, duplicates, rejected]
+      properties:
+        accepted:
+          type: integer
+          minimum: 0
+        duplicates:
+          type: integer
+          minimum: 0
+        rejected:
+          type: array
+          items:
+            type: object
+            description: Per-item rejection detail (shape TBD).
+
+    RunFileV9:
+      type: object
+      description: |
+        StS2 run file (v9). Canonical JSON Schema lives at `contracts/runfile/run.v9.schema.json`.
+        Additional game fields are allowed (`additionalProperties` in schema).
+      additionalProperties: true
+      properties:
+        schema_version:
+          type: integer
+          description: Optional contract/schema version marker when present.
+        character_class:
+          type: string
+        ascension:
+          type: integer
+        status:
+          type: string
+          description: Run outcome hint for fixtures (e.g. victory, defeat, abandoned).
+        seed:
+          type: string
+        run_id:
+          type: string
+
+  examples:
+    runStartedEvent:
+      summary: RUN_STARTED envelope
+      value:
+        event_id: "018f1234-5678-41d4-a716-446655440001"
+        run_id: "1776658411"
+        type: RUN_STARTED
+        occurred_at: "2026-04-26T12:34:56Z"
+        schema_version: 1
+        source: hook
+        game_version: v0.103.2
+        game_commit: "89765e1e"
+        is_modded: true
+        is_multiplayer: false
+        player_id: "76561198063900908"
+        data:
+          character_class: IRONCLAD
+          seed: "ABC123"

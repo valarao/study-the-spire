@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RUN_FILE_WRITTEN data",
+  "description": "Payload for `type` = RUN_FILE_WRITTEN when the game writes or updates a run file on disk.",
+  "type": "object",
+  "required": ["relative_path"],
+  "additionalProperties": true,
+  "properties": {
+    "relative_path": {
+      "type": "string",
+      "description": "Path relative to run history root (mod-defined)."
+    },
+    "byte_size": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Hex-encoded SHA-256 of file contents when known."
+    }
+  }
+}

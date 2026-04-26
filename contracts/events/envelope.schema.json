@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StudyTheSpireEventEnvelope",
+  "description": "Wire envelope for mod- and hook-emitted game events. The `data` object is validated separately against `contracts/types/<TYPE>.schema.json` matching `type`.",
+  "type": "object",
+  "required": [
+    "event_id",
+    "run_id",
+    "type",
+    "occurred_at",
+    "schema_version",
+    "source",
+    "game_version",
+    "game_commit",
+    "is_modded",
+    "is_multiplayer",
+    "player_id",
+    "data"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$",
+      "description": "Unique event id (UUID v7 recommended; RFC 4122 string form)."
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Game run identifier (string form)."
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "RUN_STARTED",
+        "RUN_ENDED",
+        "FLOOR_ENTERED",
+        "CARD_PICKED",
+        "RELIC_OBTAINED",
+        "POTION_OBTAINED",
+        "COMBAT_ENDED",
+        "RUN_FILE_WRITTEN"
+      ]
+    },
+    "occurred_at": {
+      "type": "string",
+      "description": "RFC 3339 / ISO 8601 timestamp (e.g. 2026-04-26T12:34:56Z)."
+    },
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "source": {
+      "type": "string",
+      "description": "Origin of the event (e.g. hook, run_file)."
+    },
+    "game_version": {
+      "type": "string"
+    },
+    "game_commit": {
+      "type": "string"
+    },
+    "is_modded": {
+      "type": "boolean"
+    },
+    "is_multiplayer": {
+      "type": "boolean"
+    },
+    "player_id": {
+      "type": "string",
+      "description": "Stable player identifier (e.g. Steam id)."
+    },
+    "data": {
+      "type": "object",
+      "description": "Event-specific payload."
+    }
+  }
+}

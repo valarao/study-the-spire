@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "run_id": "run_sample_win_001",
+  "character_class": "IRONCLAD",
+  "ascension": 0,
+  "seed": "WINSEED1",
+  "status": "victory",
+  "started_at": "2026-04-26T10:00:00Z",
+  "ended_at": "2026-04-26T11:30:00Z",
+  "floor_reached": 20,
+  "player_id": "76561198063900908",
+  "decks": [
+    {
+      "label": "final",
+      "card_ids": ["bash", "strike", "defend"]
+    }
+  ]
+}

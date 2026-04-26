@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "run_id": "run_sample_loss_002",
+  "character_class": "SILENT",
+  "ascension": 3,
+  "seed": "LOSSSEED2",
+  "status": "defeat",
+  "started_at": "2026-04-26T09:00:00Z",
+  "ended_at": "2026-04-26T09:45:00Z",
+  "floor_reached": 12,
+  "player_id": "76561198063900908",
+  "death_floor": 12,
+  "decks": []
+}
