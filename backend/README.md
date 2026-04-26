@@ -28,7 +28,28 @@ Expected:
 {"message":"the spire awaits"}
 ```
 
-Kairo also exposes health checks when `HealthCheckFeature` is enabled (see [Health Check](https://kairo.highbeam.com/modules/healthcheck/)):
+## Docker smoke test
+
+```bash
+cd backend
+./gradlew clean installDist
+docker build -t study-the-spire-api .
+docker run --rm -p 8080:8080 -e PORT=8080 study-the-spire-api
+```
+
+In another terminal:
+
+```bash
+curl -sS http://127.0.0.1:8080/hello
+```
+
+Expected:
+
+```json
+{"message":"the spire awaits"}
+```
+
+Kairo also exposes health checks when `HealthCheckFeature` is enabled (see [Health Check](https://kairo.highbeam.com/modules/kairo-health-check/)):
 
 - `GET /health/liveness`
 - `GET /health/readiness`

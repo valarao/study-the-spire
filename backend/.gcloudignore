@@ -1,0 +1,6 @@
+*
+!Dockerfile
+!build/
+!build/install/
+!build/install/study-the-spire-api/
+!build/install/study-the-spire-api/**
