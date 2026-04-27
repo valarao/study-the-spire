@@ -27,6 +27,12 @@ dependencies {
   implementation("com.highbeam.kairo:kairo-rest-feature")
   implementation("com.highbeam.kairo:kairo-config")
   implementation("com.highbeam.kairo:kairo-health-check-feature")
+  implementation("com.highbeam.kairo:kairo-dependency-injection-feature")
+  implementation("com.highbeam.kairo:kairo-sql-feature")
+  implementation("com.highbeam.kairo:kairo-sql-postgres")
+  runtimeOnly("org.postgresql:r2dbc-postgresql")
+  // Used in production via the r2dbc:gcp:postgresql:// URL scheme to talk to Cloud SQL.
+  runtimeOnly("com.google.cloud.sql:cloud-sql-connector-r2dbc-postgres:1.21.0")
 }
 
 application {

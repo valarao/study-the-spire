@@ -7,6 +7,13 @@ ARTIFACT_REPO="${ARTIFACT_REPO:-study-the-spire}"
 SERVICE_NAME="${SERVICE_NAME:-study-the-spire-api}"
 TAG="${TAG:-$(date +%Y%m%d-%H%M%S)}"
 
+CLOUD_SQL_INSTANCE="${CLOUD_SQL_INSTANCE:-study-the-spire-db}"
+INSTANCE_CONNECTION_NAME="${INSTANCE_CONNECTION_NAME:-${PROJECT_ID}:${REGION}:${CLOUD_SQL_INSTANCE}}"
+DB_NAME="${DB_NAME:-study_the_spire}"
+DB_USER="${DB_USER:-app_user}"
+DB_PASSWORD_SECRET="${DB_PASSWORD_SECRET:-stsa-db-password}"
+SERVICE_ACCOUNT="${SERVICE_ACCOUNT:-${SERVICE_NAME}@${PROJECT_ID}.iam.gserviceaccount.com}"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 BACKEND_DIR="${REPO_ROOT}/backend"
@@ -23,6 +30,8 @@ require_cmd gcloud
 require_cmd bash
 
 echo "Using: project=${PROJECT_ID}, region=${REGION}, repo=${ARTIFACT_REPO}, service=${SERVICE_NAME}, tag=${TAG}"
+echo "Cloud SQL: instance=${INSTANCE_CONNECTION_NAME}, db=${DB_NAME}, user=${DB_USER}, secret=${DB_PASSWORD_SECRET}"
+echo "Service account: ${SERVICE_ACCOUNT}"
 
 gcloud config set project "${PROJECT_ID}" >/dev/null
 
@@ -55,10 +64,15 @@ gcloud run deploy "${SERVICE_NAME}" \
   --platform managed \
   --image "${IMAGE_URI}" \
   --allow-unauthenticated \
-  --set-env-vars "CONFIG=production"
+  --service-account "${SERVICE_ACCOUNT}" \
+  --add-cloudsql-instances "${INSTANCE_CONNECTION_NAME}" \
+  --set-env-vars "CONFIG=production,INSTANCE_CONNECTION_NAME=${INSTANCE_CONNECTION_NAME},DB_NAME=${DB_NAME},DB_USER=${DB_USER}" \
+  --set-secrets "DB_PASSWORD=${DB_PASSWORD_SECRET}:latest"
 
 SERVICE_URL="$(gcloud run services describe "${SERVICE_NAME}" --project "${PROJECT_ID}" --region "${REGION}" --format='value(status.url)')"
 
 echo
 echo "Deployed URL: ${SERVICE_URL}"
-echo "Verify: curl ${SERVICE_URL}/hello"
+echo "Verify:"
+echo "  curl ${SERVICE_URL}/hello"
+echo "  curl ${SERVICE_URL}/db/ping"

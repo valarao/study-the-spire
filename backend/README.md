@@ -10,6 +10,14 @@ Kotlin **Kairo** HTTP API. Wire contract: [`../contracts/api/openapi.yaml`](../c
 
 ## Run (local)
 
+The development config talks to a local Postgres on `localhost:5432`. Start it first via [`infra/local/docker-compose.yml`](../infra/local/docker-compose.yml):
+
+```bash
+docker compose -f infra/local/docker-compose.yml up -d
+```
+
+Then start the backend:
+
 ```bash
 cd backend
 export CONFIG=development
@@ -20,12 +28,14 @@ Smoke test:
 
 ```bash
 curl -sS http://127.0.0.1:8080/hello
+curl -sS http://127.0.0.1:8080/db/ping
 ```
 
 Expected:
 
 ```json
 {"message":"the spire awaits"}
+{"ok":true,"databaseTime":"2026-04-26T12:34:56Z"}
 ```
 
 ## Docker smoke test
