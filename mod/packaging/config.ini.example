@@ -1,0 +1,12 @@
+[study_the_spire]
+upload_token =
+endpoint = https://study-the-spire-api-96468418534.us-central1.run.app
+enabled = true
+
+[capture]
+run_history = true
+live_events = false
+combat_summaries = false
+
+[logging]
+level = info

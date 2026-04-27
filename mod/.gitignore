@@ -1,0 +1,10 @@
+bin/
+obj/
+.godot/
+publish/
+Directory.Build.props
+*.user
+*.cs.uid
+.vs/
+.idea/
+.editorconfig
