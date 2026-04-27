@@ -86,6 +86,7 @@ export default async function RunsPage({
       </header>
       <RunsFilterBar characters={characters} ascensions={ascensions} />
       <RunsTable
+        key={qs}
         initialRuns={data.runs}
         initialNextCursor={data.nextCursor}
         searchParams={qs}

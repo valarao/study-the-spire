@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { BarChart3, LayoutDashboard, ListChecks, Settings } from "lucide-react";
 
 import {
@@ -28,6 +31,7 @@ const navItems: ReadonlyArray<NavItem> = [
 ];
 
 export function AppSidebar() {
+  const pathname = usePathname();
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -42,7 +46,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {navItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = !item.disabled && item.title === "Dashboard";
+                const isActive = !item.disabled && isItemActive(pathname, item.href);
                 if (item.disabled) {
                   return (
                     <SidebarMenuItem key={item.title}>
@@ -76,4 +80,9 @@ export function AppSidebar() {
       </SidebarContent>
     </Sidebar>
   );
+}
+
+function isItemActive(pathname: string, href: string): boolean {
+  if (href === "/dashboard") return pathname === "/dashboard";
+  return pathname === href || pathname.startsWith(href + "/");
 }
