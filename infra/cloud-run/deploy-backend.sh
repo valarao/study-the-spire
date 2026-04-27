@@ -12,6 +12,8 @@ INSTANCE_CONNECTION_NAME="${INSTANCE_CONNECTION_NAME:-${PROJECT_ID}:${REGION}:${
 DB_NAME="${DB_NAME:-study_the_spire}"
 DB_USER="${DB_USER:-app_user}"
 DB_PASSWORD_SECRET="${DB_PASSWORD_SECRET:-stsa-db-password}"
+CLERK_JWKS_URL_SECRET="${CLERK_JWKS_URL_SECRET:-CLERK_JWKS_URL}"
+CLERK_ISSUER_SECRET="${CLERK_ISSUER_SECRET:-CLERK_ISSUER}"
 SERVICE_ACCOUNT="${SERVICE_ACCOUNT:-${SERVICE_NAME}@${PROJECT_ID}.iam.gserviceaccount.com}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -31,6 +33,7 @@ require_cmd bash
 
 echo "Using: project=${PROJECT_ID}, region=${REGION}, repo=${ARTIFACT_REPO}, service=${SERVICE_NAME}, tag=${TAG}"
 echo "Cloud SQL: instance=${INSTANCE_CONNECTION_NAME}, db=${DB_NAME}, user=${DB_USER}, secret=${DB_PASSWORD_SECRET}"
+echo "Clerk secrets: jwks=${CLERK_JWKS_URL_SECRET}, issuer=${CLERK_ISSUER_SECRET}"
 echo "Service account: ${SERVICE_ACCOUNT}"
 
 gcloud config set project "${PROJECT_ID}" >/dev/null
@@ -54,6 +57,16 @@ if [ ! -x "${BACKEND_DIR}/build/install/study-the-spire-api/bin/study-the-spire-
   exit 1
 fi
 
+echo "Ensuring service account has Secret Accessor access to Clerk secrets..."
+for secret in "${CLERK_JWKS_URL_SECRET}" "${CLERK_ISSUER_SECRET}"; do
+  gcloud secrets add-iam-policy-binding "${secret}" \
+    --project "${PROJECT_ID}" \
+    --member "serviceAccount:${SERVICE_ACCOUNT}" \
+    --role "roles/secretmanager.secretAccessor" \
+    --condition None \
+    >/dev/null 2>&1 || true
+done
+
 echo "Building and pushing image with Cloud Build: ${IMAGE_URI}"
 gcloud builds submit "${BACKEND_DIR}" --tag "${IMAGE_URI}" --ignore-file "${BACKEND_DIR}/.gcloudignore"
 
@@ -67,7 +80,7 @@ gcloud run deploy "${SERVICE_NAME}" \
   --service-account "${SERVICE_ACCOUNT}" \
   --add-cloudsql-instances "${INSTANCE_CONNECTION_NAME}" \
   --set-env-vars "CONFIG=production,INSTANCE_CONNECTION_NAME=${INSTANCE_CONNECTION_NAME},DB_NAME=${DB_NAME},DB_USER=${DB_USER}" \
-  --set-secrets "DB_PASSWORD=${DB_PASSWORD_SECRET}:latest"
+  --set-secrets "DB_PASSWORD=${DB_PASSWORD_SECRET}:latest,CLERK_JWKS_URL=${CLERK_JWKS_URL_SECRET}:latest,CLERK_ISSUER=${CLERK_ISSUER_SECRET}:latest"
 
 SERVICE_URL="$(gcloud run services describe "${SERVICE_NAME}" --project "${PROJECT_ID}" --region "${REGION}" --format='value(status.url)')"
 

@@ -21,6 +21,8 @@ servers:
 tags:
   - name: Health
     description: Liveness and connectivity probes
+  - name: Account
+    description: User identity endpoints (Clerk JWT auth)
   - name: Mod
     description: Mod and upload-token authenticated ingestion
 
@@ -66,6 +68,22 @@ paths:
                 $ref: "#/components/schemas/DbPingResponse"
         "503":
           description: Database unavailable
+
+  /me:
+    get:
+      tags: [Account]
+      summary: Current user identity
+      security:
+        - ClerkJwtAuth: []
+      responses:
+        "200":
+          description: Authenticated user identity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeResponse"
+        "401":
+          description: Missing or invalid Clerk JWT
 
   /mod/ping:
     post:
@@ -178,6 +196,18 @@ components:
         `Authorization: Bearer <token>`.
 
   schemas:
+    MeResponse:
+      type: object
+      required: [userId]
+      properties:
+        userId:
+          type: string
+          example: "user_2abc123"
+        email:
+          type: string
+          nullable: true
+          example: "miguel@example.com"
+
     HelloResponse:
       type: object
       required: [message]

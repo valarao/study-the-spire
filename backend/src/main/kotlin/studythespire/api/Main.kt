@@ -9,12 +9,14 @@ import kairo.server.Server
 import kairo.sql.SqlFeature
 import org.jetbrains.exposed.v1.core.vendors.PostgreSQLDialect
 import org.koin.dsl.koinApplication
+import studythespire.api.auth.ClerkAuth
 import studythespire.api.health.DbPingFeature
 
 fun main() =
   kairo {
     val config = loadConfig<AppConfig>()
     val koinApplication = koinApplication()
+    val clerkAuth = ClerkAuth(config.clerk)
 
     val server =
       Server(
@@ -25,7 +27,7 @@ fun main() =
             HealthCheckFeature(),
             RestFeature(
               config = config.rest,
-              authConfig = null,
+              authConfig = clerkAuth,
             ),
             SqlFeature(
               config = config.sql,
@@ -35,6 +37,7 @@ fun main() =
             ),
             HelloApiFeature(),
             DbPingFeature(koinApplication.koin),
+            MeApiFeature(config.clerk),
           ),
       )
 

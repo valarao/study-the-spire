@@ -30,6 +30,9 @@ dependencies {
   implementation("com.highbeam.kairo:kairo-dependency-injection-feature")
   implementation("com.highbeam.kairo:kairo-sql-feature")
   implementation("com.highbeam.kairo:kairo-sql-postgres")
+  implementation("io.ktor:ktor-server-auth-jwt")
+  implementation("com.auth0:java-jwt:4.5.0")
+  implementation("com.auth0:jwks-rsa:0.22.1")
   runtimeOnly("org.postgresql:r2dbc-postgresql")
   // Used in production via the r2dbc:gcp:postgresql:// URL scheme to talk to Cloud SQL.
   runtimeOnly("com.google.cloud.sql:cloud-sql-connector-r2dbc-postgres:1.21.0")

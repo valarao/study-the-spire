@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `GET /me` endpoint (Clerk JWT auth) returning `userId` and `email`.
+- `MeResponse` schema in `components/schemas`.
+- `Account` tag for user identity endpoints.
+
 ### Changed
 
 - Removed JSON Schema `$id` URIs from envelope, run file, and per-type schemas until a stable public identifier is chosen.
