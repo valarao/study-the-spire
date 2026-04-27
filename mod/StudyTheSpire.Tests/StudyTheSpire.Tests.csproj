@@ -22,6 +22,7 @@
     <ItemGroup>
         <Compile Include="..\StudyTheSpire\Logging\Redactor.cs" Link="Logging\Redactor.cs" />
         <Compile Include="..\StudyTheSpire\Config\IniParser.cs" Link="Config\IniParser.cs" />
+        <Compile Include="..\StudyTheSpire\Saves\Sha256Hex.cs" Link="Saves\Sha256Hex.cs" />
     </ItemGroup>
 
 </Project>

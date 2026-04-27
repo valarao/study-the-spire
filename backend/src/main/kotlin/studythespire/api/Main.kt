@@ -15,6 +15,9 @@ import studythespire.api.auth.UploadTokenAuth
 import studythespire.api.db.Migrator
 import studythespire.api.health.DbPingFeature
 import studythespire.api.mod.ModPingApiFeature
+import studythespire.api.runs.ImportRunFileFeature
+import studythespire.api.runs.RunStore
+import studythespire.api.runs.RunsApiFeature
 import studythespire.api.tokens.UploadTokenStore
 import studythespire.api.tokens.UploadTokensApiFeature
 import studythespire.api.users.UserStore
@@ -28,6 +31,7 @@ fun main() =
     val clerkAuth = ClerkAuth(config.clerk)
     val userStore = UserStore(koin)
     val uploadTokenStore = UploadTokenStore(koin)
+    val runStore = RunStore(koin)
     val clerkAuthHelper = ClerkAuthHelper(config.clerk, userStore)
     val uploadTokenAuth = UploadTokenAuth(uploadTokenStore)
 
@@ -53,6 +57,8 @@ fun main() =
             MeApiFeature(clerkAuthHelper),
             UploadTokensApiFeature(clerkAuthHelper, uploadTokenStore),
             ModPingApiFeature(uploadTokenAuth, serverVersion = "0.1.0"),
+            ImportRunFileFeature(uploadTokenAuth, runStore),
+            RunsApiFeature(clerkAuthHelper, runStore),
           ),
       )
 

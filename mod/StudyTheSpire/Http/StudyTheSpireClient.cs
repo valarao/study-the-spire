@@ -66,6 +66,67 @@ internal sealed class StudyTheSpireClient
         }).Unwrap();
     }
 
+    public async Task<ImportRunFileResponse?> UploadRunFileAsync(
+        string rawJson,
+        string fileName,
+        string sha256,
+        CancellationToken ct = default)
+    {
+        if (_disabled) return null;
+
+        return await RetryPolicy.ExecuteAsync<HttpResponseMessage>(
+            op: () =>
+            {
+                var content = new StringContent(rawJson, System.Text.Encoding.UTF8, "application/json");
+                var req = new HttpRequestMessage(HttpMethod.Post, "imports/run-file") { Content = content };
+                req.Headers.TryAddWithoutValidation("X-Run-File-Name", fileName);
+                return _http.SendAsync(req, ct);
+            },
+            classify: r => ClassifyImport(r, fileName),
+            ct: ct).ContinueWith(async t =>
+        {
+            var resp = t.Result;
+            if (resp is null) return null;
+            try
+            {
+                return await resp.Content.ReadFromJsonAsync<ImportRunFileResponse>(Json, ct);
+            }
+            catch (Exception e)
+            {
+                _log.Warn($"Couldn't parse /imports/run-file response for {fileName}: {e.Message}");
+                return null;
+            }
+        }).Unwrap();
+    }
+
+    private RetryDecision ClassifyImport(HttpResponseMessage resp, string fileName)
+    {
+        switch ((int)resp.StatusCode)
+        {
+            case 200:
+                return new RetryDecision.Success<HttpResponseMessage>(resp);
+            case 401:
+                _disabled = true;
+                _log.Warn($"401 on /imports/run-file ({fileName}) — token rejected. Uploads disabled for this session.");
+                return new RetryDecision.Fatal("401");
+            case 400:
+                _log.Warn($"400 on /imports/run-file ({fileName}) — rejected: {SafeReadBody(resp)}");
+                return new RetryDecision.Fatal("400");
+            case 429:
+                var delay = resp.Headers.RetryAfter?.Delta ?? TimeSpan.FromSeconds(5);
+                _log.Info($"429 on /imports/run-file ({fileName}) — backing off for {delay.TotalSeconds:F1}s.");
+                return new RetryDecision.RetryAfter(delay);
+            default:
+                if ((int)resp.StatusCode >= 500)
+                {
+                    _log.Info($"{(int)resp.StatusCode} on /imports/run-file ({fileName}) — retrying.");
+                    return new RetryDecision.RetryAfter(TimeSpan.Zero);
+                }
+                _log.Warn($"Unexpected status on /imports/run-file ({fileName}): {(int)resp.StatusCode}");
+                return new RetryDecision.Fatal($"status={(int)resp.StatusCode}");
+        }
+    }
+
     private RetryDecision ClassifyPing(HttpResponseMessage resp)
     {
         switch ((int)resp.StatusCode)

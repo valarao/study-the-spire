@@ -25,6 +25,8 @@ tags:
     description: User identity endpoints (Clerk JWT auth)
   - name: Tokens
     description: Manage per-user upload tokens (Clerk JWT auth)
+  - name: Runs
+    description: List and inspect imported runs (Clerk JWT auth)
   - name: Mod
     description: Mod and upload-token authenticated ingestion
 
@@ -150,6 +152,47 @@ paths:
         "401":
           description: Missing or invalid Clerk JWT
 
+  /runs:
+    get:
+      tags: [Runs]
+      summary: List the caller's imported runs (newest first)
+      security:
+        - ClerkJwtAuth: []
+      responses:
+        "200":
+          description: Up to 50 most recent runs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunsListResponse"
+        "401":
+          description: Missing or invalid Clerk JWT
+
+  /runs/{runId}:
+    get:
+      tags: [Runs]
+      summary: Single run with normalized fields and the original raw JSON
+      security:
+        - ClerkJwtAuth: []
+      parameters:
+        - in: path
+          name: runId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Run found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunDetailResponse"
+        "401":
+          description: Missing or invalid Clerk JWT
+        "404":
+          description: No run with that id for the caller
+
   /mod/ping:
     post:
       tags: [Mod]
@@ -228,9 +271,19 @@ paths:
       summary: Import a completed run file (raw JSON)
       description: |
         Request body is the **raw StS2 run file JSON** (v9 shape). Validate against
-        `contracts/runfile/run.v9.schema.json` before upload when possible.
+        `contracts/runfile/run.v9.schema.json` before upload when possible. Optional
+        `X-Run-File-Name` header preserves the source file name (e.g. `1776658411.run`).
+
+        Idempotent on `(user, sha256(body))`: re-uploading the same file returns
+        `imported: false` with the existing `runId`.
       security:
         - UploadTokenAuth: []
+      parameters:
+        - in: header
+          name: X-Run-File-Name
+          required: false
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -239,7 +292,11 @@ paths:
               $ref: "#/components/schemas/RunFileV9"
       responses:
         "200":
-          description: Run file accepted
+          description: Run accepted (or duplicate)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportRunFileResponse"
         "400":
           description: Validation error
         "401":
@@ -329,6 +386,86 @@ components:
       properties:
         ok:
           type: boolean
+
+    RunRep:
+      type: object
+      required: [id, status, ascension, seed, buildId, gameMode, platformType, startTime, runTimeSecs, schemaVersion, acts]
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [victory, defeat, abandoned]
+        characterClass:
+          type: string
+          nullable: true
+          example: CHARACTER.IRONCLAD
+        ascension:
+          type: integer
+          minimum: 0
+        seed:
+          type: string
+        buildId:
+          type: string
+          example: v0.103.2
+        gameMode:
+          type: string
+          example: standard
+        platformType:
+          type: string
+          example: steam
+        startTime:
+          type: string
+          format: date-time
+        runTimeSecs:
+          type: integer
+          minimum: 0
+        killedByEncounter:
+          type: string
+          nullable: true
+        killedByEvent:
+          type: string
+          nullable: true
+        schemaVersion:
+          type: integer
+        acts:
+          type: array
+          items:
+            type: string
+
+    RunsListResponse:
+      type: object
+      required: [runs]
+      properties:
+        runs:
+          type: array
+          items:
+            $ref: "#/components/schemas/RunRep"
+
+    RunDetailResponse:
+      type: object
+      required: [run, rawJson]
+      properties:
+        run:
+          $ref: "#/components/schemas/RunRep"
+        rawJson:
+          type: string
+          description: Original raw run-file JSON, exactly as uploaded.
+        fileName:
+          type: string
+          nullable: true
+
+    ImportRunFileResponse:
+      type: object
+      required: [imported, runId]
+      properties:
+        imported:
+          type: boolean
+          description: True for a new run, false if `(user, sha256)` already existed.
+        runId:
+          type: string
+          format: uuid
 
     HelloResponse:
       type: object

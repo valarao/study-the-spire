@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `GET /runs` and `GET /runs/{runId}` for listing imported runs and fetching one with its original raw JSON (Clerk JWT auth).
+- `Runs` tag for run listing/inspection endpoints.
+- `RunRep`, `RunsListResponse`, `RunDetailResponse`, `ImportRunFileResponse` schemas.
+- `POST /imports/run-file` now documents `X-Run-File-Name` header and returns `ImportRunFileResponse` (`imported`, `runId`). Idempotent on `(user, sha256)`.
+
 ### Changed
 
 - `runfile/run.v9.schema.json` rewritten against real StS2 exports (kept locally under `references/run-samples/` — gitignored because they contain Steam IDs). Top-level required fields are now `build_id, schema_version, seed, start_time, was_abandoned, win, ascension, game_mode, platform_type, run_time`. The previous `run_id` and `status` (enum) fields are removed — the game does not emit them; the importer will derive a normalized status from `was_abandoned` + `win`. Nested shapes inside `acts`, `players`, and `map_point_history` remain unenforced for the EA window.
