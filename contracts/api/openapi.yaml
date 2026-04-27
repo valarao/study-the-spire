@@ -27,6 +27,8 @@ tags:
     description: Manage per-user upload tokens (Clerk JWT auth)
   - name: Runs
     description: List and inspect imported runs (Clerk JWT auth)
+  - name: Stats
+    description: Aggregate stats over the caller's imported runs (Clerk JWT auth)
   - name: Mod
     description: Mod and upload-token authenticated ingestion
 
@@ -156,11 +158,46 @@ paths:
     get:
       tags: [Runs]
       summary: List the caller's imported runs (newest first)
+      description: |
+        Cursor-paginated. Pass `cursor` from a previous response's `nextCursor`
+        field to fetch the next page. Filters narrow on the normalized columns
+        (`character`, `ascension`, `status`, `from`, `to`).
       security:
         - ClerkJwtAuth: []
+      parameters:
+        - in: query
+          name: character
+          required: false
+          schema: { type: string, example: CHARACTER.IRONCLAD }
+        - in: query
+          name: ascension
+          required: false
+          schema: { type: integer, minimum: 0 }
+        - in: query
+          name: status
+          required: false
+          schema: { type: string, enum: [victory, defeat, abandoned] }
+        - in: query
+          name: from
+          required: false
+          schema: { type: string, format: date-time }
+          description: Inclusive lower bound on `start_time`.
+        - in: query
+          name: to
+          required: false
+          schema: { type: string, format: date-time }
+          description: Exclusive upper bound on `start_time`.
+        - in: query
+          name: cursor
+          required: false
+          schema: { type: string }
+        - in: query
+          name: limit
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
       responses:
         "200":
-          description: Up to 50 most recent runs
+          description: Page of runs and a cursor for the next page (null when exhausted)
           content:
             application/json:
               schema:
@@ -192,6 +229,22 @@ paths:
           description: Missing or invalid Clerk JWT
         "404":
           description: No run with that id for the caller
+
+  /stats/summary:
+    get:
+      tags: [Stats]
+      summary: Aggregate summary stats across all the caller's runs
+      security:
+        - ClerkJwtAuth: []
+      responses:
+        "200":
+          description: Summary of totals, win rate, per-character/ascension breakdowns, top death causes.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsSummaryResponse"
+        "401":
+          description: Missing or invalid Clerk JWT
 
   /mod/ping:
     post:
@@ -442,6 +495,87 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RunRep"
+        nextCursor:
+          type: string
+          nullable: true
+          description: Pass back to `/runs?cursor=…` for the next page. `null` when there are no more results.
+
+    CharacterStat:
+      type: object
+      required: [characterClass, runs, wins]
+      properties:
+        characterClass:
+          type: string
+          nullable: true
+        runs:
+          type: integer
+          minimum: 0
+        wins:
+          type: integer
+          minimum: 0
+
+    AscensionStat:
+      type: object
+      required: [ascension, runs, wins]
+      properties:
+        ascension:
+          type: integer
+          minimum: 0
+        runs:
+          type: integer
+          minimum: 0
+        wins:
+          type: integer
+          minimum: 0
+
+    DeathCauseStat:
+      type: object
+      required: [cause, count]
+      properties:
+        cause:
+          type: string
+        count:
+          type: integer
+          minimum: 1
+
+    StatsSummaryResponse:
+      type: object
+      required: [totalRuns, wins, defeats, abandoned, byCharacter, byAscension, topDeathCauses]
+      properties:
+        totalRuns:
+          type: integer
+          minimum: 0
+        wins:
+          type: integer
+          minimum: 0
+        defeats:
+          type: integer
+          minimum: 0
+        abandoned:
+          type: integer
+          minimum: 0
+        winRate:
+          type: number
+          format: float
+          nullable: true
+          description: Wins / total runs. `null` when there are no runs.
+        avgRunTimeSecs:
+          type: integer
+          nullable: true
+          minimum: 0
+        byCharacter:
+          type: array
+          items:
+            $ref: "#/components/schemas/CharacterStat"
+        byAscension:
+          type: array
+          items:
+            $ref: "#/components/schemas/AscensionStat"
+        topDeathCauses:
+          type: array
+          maxItems: 5
+          items:
+            $ref: "#/components/schemas/DeathCauseStat"
 
     RunDetailResponse:
       type: object

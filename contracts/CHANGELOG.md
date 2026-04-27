@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `GET /stats/summary` returning aggregate stats (totals, win rate, per-character + per-ascension breakdowns, top death causes) for the authenticated user.
+- `Stats` tag for stats endpoints.
+- `StatsSummaryResponse`, `CharacterStat`, `AscensionStat`, `DeathCauseStat` schemas.
+- `GET /runs` query parameters: `character`, `ascension`, `status`, `from`, `to`, `cursor`, `limit`. Cursor-paginated; default page size 25, max 100.
+- `RunsListResponse.nextCursor` field — opaque token for fetching the next page.
 - `GET /runs` and `GET /runs/{runId}` for listing imported runs and fetching one with its original raw JSON (Clerk JWT auth).
 - `Runs` tag for run listing/inspection endpoints.
 - `RunRep`, `RunsListResponse`, `RunDetailResponse`, `ImportRunFileResponse` schemas.

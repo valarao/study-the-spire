@@ -17,6 +17,9 @@ import kotlinx.serialization.json.long
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.core.less
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
 import org.jetbrains.exposed.v1.r2dbc.insert
 import org.jetbrains.exposed.v1.r2dbc.select
@@ -92,21 +95,116 @@ internal class RunStore(
     ImportResult.Inserted(RunId(newRunId))
   }
 
-  suspend fun listForUser(userId: UserId, limit: Int = 50): List<Run> =
+  suspend fun listForUser(
+    userId: UserId,
+    filter: RunFilter = RunFilter(),
+    cursor: RunCursor? = null,
+    limit: Int = 25,
+  ): RunPage = suspendTransaction(db = database) {
+    val rows = RunsTable
+      .select(
+        RunsTable.id, RunsTable.importId, RunsTable.userId, RunsTable.status,
+        RunsTable.characterClass, RunsTable.ascension, RunsTable.seed, RunsTable.buildId,
+        RunsTable.gameMode, RunsTable.platformType, RunsTable.startTime, RunsTable.runTimeSecs,
+        RunsTable.killedByEncounter, RunsTable.killedByEvent, RunsTable.schemaVersion, RunsTable.acts,
+      )
+      .where {
+        var op: org.jetbrains.exposed.v1.core.Op<Boolean> = RunsTable.userId eq userId.value
+        filter.character?.let { c -> op = op and (RunsTable.characterClass eq c) }
+        filter.ascension?.let { a -> op = op and (RunsTable.ascension eq a) }
+        filter.status?.let { s -> op = op and (RunsTable.status eq s.value) }
+        filter.from?.let { f -> op = op and (RunsTable.startTime greaterEq f) }
+        filter.to?.let { t -> op = op and (RunsTable.startTime less t) }
+        cursor?.let { c ->
+          // Older than the cursor; tie-break on id when start_time matches.
+          op = op and (
+            (RunsTable.startTime less c.startTime) or
+              ((RunsTable.startTime eq c.startTime) and (RunsTable.id less c.runId))
+          )
+        }
+        op
+      }
+      .orderBy(RunsTable.startTime to SortOrder.DESC, RunsTable.id to SortOrder.DESC)
+      .limit(limit + 1)
+      .toList()
+    val hasMore = rows.size > limit
+    val page = (if (hasMore) rows.dropLast(1) else rows).map { it.toRun() }
+    val nextCursor = if (hasMore && page.isNotEmpty()) {
+      val last = page.last()
+      RunCursor(last.startTime, last.id.value).encode()
+    } else null
+    RunPage(runs = page, nextCursor = nextCursor)
+  }
+
+  suspend fun summaryForUser(userId: UserId): SummaryAggregates =
     suspendTransaction(db = database) {
-      RunsTable
+      val rows = RunsTable
         .select(
-          RunsTable.id, RunsTable.importId, RunsTable.userId, RunsTable.status,
-          RunsTable.characterClass, RunsTable.ascension, RunsTable.seed, RunsTable.buildId,
-          RunsTable.gameMode, RunsTable.platformType, RunsTable.startTime, RunsTable.runTimeSecs,
-          RunsTable.killedByEncounter, RunsTable.killedByEvent, RunsTable.schemaVersion, RunsTable.acts,
+          RunsTable.status, RunsTable.characterClass, RunsTable.ascension,
+          RunsTable.runTimeSecs, RunsTable.killedByEncounter, RunsTable.killedByEvent,
         )
         .where { RunsTable.userId eq userId.value }
-        .orderBy(RunsTable.startTime, SortOrder.DESC)
-        .limit(limit)
         .toList()
-        .map { it.toRun() }
+      var total = 0
+      var wins = 0
+      var defeats = 0
+      var abandoned = 0
+      var totalRunTime = 0L
+      val byChar = mutableMapOf<String?, IntArray>()         // [runs, wins]
+      val byAsc = mutableMapOf<Int, IntArray>()              // [runs, wins]
+      val deathCauses = mutableMapOf<String, Int>()
+      for (r in rows) {
+        total += 1
+        val s = r[RunsTable.status]
+        val isWin = s == RunStatus.Victory.value
+        when (s) {
+          RunStatus.Victory.value -> wins += 1
+          RunStatus.Defeat.value -> defeats += 1
+          RunStatus.Abandoned.value -> abandoned += 1
+        }
+        totalRunTime += r[RunsTable.runTimeSecs]
+        val ch = r[RunsTable.characterClass]
+        val cArr = byChar.getOrPut(ch) { IntArray(2) }
+        cArr[0] += 1; if (isWin) cArr[1] += 1
+        val asc = r[RunsTable.ascension]
+        val aArr = byAsc.getOrPut(asc) { IntArray(2) }
+        aArr[0] += 1; if (isWin) aArr[1] += 1
+        if (!isWin) {
+          val cause = causeOf(
+            status = s,
+            killedByEncounter = r[RunsTable.killedByEncounter],
+            killedByEvent = r[RunsTable.killedByEvent],
+          )
+          if (cause != null) deathCauses[cause] = (deathCauses[cause] ?: 0) + 1
+        }
+      }
+      SummaryAggregates(
+        totalRuns = total,
+        wins = wins,
+        defeats = defeats,
+        abandoned = abandoned,
+        totalRunTimeSecs = totalRunTime,
+        byCharacter = byChar.entries
+          .sortedByDescending { it.value[0] }
+          .map { Triple(it.key, it.value[0], it.value[1]) },
+        byAscension = byAsc.entries
+          .sortedBy { it.key }
+          .map { Triple(it.key, it.value[0], it.value[1]) },
+        topDeathCauses = deathCauses.entries
+          .sortedByDescending { it.value }
+          .take(5)
+          .map { it.key to it.value },
+      )
     }
+
+  private fun causeOf(status: String, killedByEncounter: String?, killedByEvent: String?): String? {
+    val enc = killedByEncounter?.takeUnless { it == "NONE.NONE" }
+    val ev = killedByEvent?.takeUnless { it == "NONE.NONE" }
+    if (enc != null) return enc
+    if (ev != null) return ev
+    if (status == RunStatus.Abandoned.value) return "abandoned"
+    return null
+  }
 
   suspend fun findById(runId: RunId, userId: UserId): RunWithRaw? =
     suspendTransaction(db = database) {

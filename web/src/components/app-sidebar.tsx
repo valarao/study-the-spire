@@ -23,7 +23,7 @@ type NavItem = {
 const navItems: ReadonlyArray<NavItem> = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { title: "Runs", href: "/dashboard/runs", icon: ListChecks },
-  { title: "Stats", href: "/dashboard", icon: BarChart3, disabled: true },
+  { title: "Stats", href: "/dashboard/stats", icon: BarChart3 },
   { title: "Mod settings", href: "/dashboard/settings/mod", icon: Settings },
 ];
 

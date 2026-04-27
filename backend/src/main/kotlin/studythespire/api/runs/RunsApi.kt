@@ -20,7 +20,10 @@ internal data class RunRep(
   val acts: List<String>,
 )
 
-internal data class RunsListRep(val runs: List<RunRep>)
+internal data class RunsListRep(
+  val runs: List<RunRep>,
+  val nextCursor: String?,
+)
 
 internal data class RunDetailRep(
   val run: RunRep,
@@ -33,14 +36,44 @@ internal data class ImportRunFileRep(
   val runId: String,
 )
 
+internal data class CharacterStatRep(val characterClass: String?, val runs: Int, val wins: Int)
+internal data class AscensionStatRep(val ascension: Int, val runs: Int, val wins: Int)
+internal data class DeathCauseStatRep(val cause: String, val count: Int)
+
+internal data class StatsSummaryRep(
+  val totalRuns: Int,
+  val wins: Int,
+  val defeats: Int,
+  val abandoned: Int,
+  val winRate: Double?,
+  val avgRunTimeSecs: Int?,
+  val byCharacter: List<CharacterStatRep>,
+  val byAscension: List<AscensionStatRep>,
+  val topDeathCauses: List<DeathCauseStatRep>,
+)
+
 internal object RunsApi {
   @Rest("GET", "/runs")
   @Rest.Accept("application/json")
-  data object List : RestEndpoint<Unit, RunsListRep>()
+  data class List(
+    @QueryParam val character: String? = null,
+    @QueryParam val ascension: Int? = null,
+    @QueryParam val status: String? = null,
+    @QueryParam val from: String? = null,
+    @QueryParam val to: String? = null,
+    @QueryParam val cursor: String? = null,
+    @QueryParam val limit: Int? = null,
+  ) : RestEndpoint<Unit, RunsListRep>()
 
   @Rest("GET", "/runs/:runId")
   @Rest.Accept("application/json")
   data class Get(@PathParam val runId: String) : RestEndpoint<Unit, RunDetailRep>()
+}
+
+internal object StatsApi {
+  @Rest("GET", "/stats/summary")
+  @Rest.Accept("application/json")
+  data object Summary : RestEndpoint<Unit, StatsSummaryRep>()
 }
 
 internal object ImportsApi {

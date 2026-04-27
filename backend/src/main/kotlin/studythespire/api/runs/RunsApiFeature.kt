@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class, kotlin.time.ExperimentalTime::class)
 
 package studythespire.api.runs
 
@@ -8,6 +8,7 @@ import kairo.feature.Feature
 import kairo.rest.HasRouting
 import kairo.rest.route
 import studythespire.api.auth.ClerkAuthHelper
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 internal class RunsApiFeature(
@@ -22,7 +23,22 @@ internal class RunsApiFeature(
         auth { auth.authenticate(call) }
         handle {
           val user = call.attributes[ClerkAuthHelper.UserKey]
-          RunsListRep(runs = runs.listForUser(user.id).map { it.toRep() })
+          val limit = endpoint.limit?.coerceIn(1, 100) ?: 25
+          val cursor = endpoint.cursor?.let { RunCursor.decode(it) }
+          val filter = RunFilter(
+            character = endpoint.character?.takeIf { it.isNotBlank() },
+            ascension = endpoint.ascension,
+            status = endpoint.status?.let { s ->
+              RunStatus.entries.firstOrNull { it.value == s }
+            },
+            from = endpoint.from?.let { runCatching { Instant.parse(it) }.getOrNull() },
+            to = endpoint.to?.let { runCatching { Instant.parse(it) }.getOrNull() },
+          )
+          val page = runs.listForUser(user.id, filter, cursor, limit)
+          RunsListRep(
+            runs = page.runs.map { it.toRep() },
+            nextCursor = page.nextCursor,
+          )
         }
       }
 
@@ -38,6 +54,25 @@ internal class RunsApiFeature(
             run = detail.run.toRep(),
             rawJson = detail.rawJson,
             fileName = detail.fileName,
+          )
+        }
+      }
+
+      route(StatsApi.Summary::class) {
+        auth { auth.authenticate(call) }
+        handle {
+          val user = call.attributes[ClerkAuthHelper.UserKey]
+          val agg = runs.summaryForUser(user.id)
+          StatsSummaryRep(
+            totalRuns = agg.totalRuns,
+            wins = agg.wins,
+            defeats = agg.defeats,
+            abandoned = agg.abandoned,
+            winRate = if (agg.totalRuns == 0) null else agg.wins.toDouble() / agg.totalRuns,
+            avgRunTimeSecs = if (agg.totalRuns == 0) null else (agg.totalRunTimeSecs / agg.totalRuns).toInt(),
+            byCharacter = agg.byCharacter.map { (c, r, w) -> CharacterStatRep(c, r, w) },
+            byAscension = agg.byAscension.map { (a, r, w) -> AscensionStatRep(a, r, w) },
+            topDeathCauses = agg.topDeathCauses.map { (c, n) -> DeathCauseStatRep(c, n) },
           )
         }
       }

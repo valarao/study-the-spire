@@ -3,16 +3,12 @@ import { NextResponse } from "next/server";
 
 const BACKEND = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
-export async function GET(req: Request) {
+export async function GET() {
   const { getToken } = await auth();
   const token = await getToken({ template: "study-the-spire-backend" });
   if (!token) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const url = new URL(req.url);
-  const qs = url.searchParams.toString();
-  const target = qs ? `${BACKEND}/runs?${qs}` : `${BACKEND}/runs`;
-
-  const res = await fetch(target, {
+  const res = await fetch(`${BACKEND}/stats/summary`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
