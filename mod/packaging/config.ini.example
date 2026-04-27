@@ -1,6 +1,6 @@
 [study_the_spire]
 upload_token =
-endpoint = https://study-the-spire-api-96468418534.us-central1.run.app
+endpoint = https://api.studythespire.com
 enabled = true
 
 [capture]

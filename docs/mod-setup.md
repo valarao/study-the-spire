@@ -17,7 +17,7 @@ verifier → /mod/ping` works.
 3. Run the smoke test (production URL):
 
    ```bash
-   curl -X POST https://study-the-spire-api-96468418534.us-central1.run.app/mod/ping \
+   curl -X POST https://api.studythespire.com/mod/ping \
      -H "Authorization: Bearer stsa_live_..." \
      -H "Content-Type: application/json" \
      -d '{"modVersion":"0.1.0","gameVersion":"dev"}'

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `runfile/run.v9.schema.json` rewritten against real StS2 exports (kept locally under `references/run-samples/` — gitignored because they contain Steam IDs). Top-level required fields are now `build_id, schema_version, seed, start_time, was_abandoned, win, ascension, game_mode, platform_type, run_time`. The previous `run_id` and `status` (enum) fields are removed — the game does not emit them; the importer will derive a normalized status from `was_abandoned` + `win`. Nested shapes inside `acts`, `players`, and `map_point_history` remain unenforced for the EA window.
+- `contracts/examples/runfile/sample_{win,loss,abandoned}.run.json` rebuilt as redacted minimal fixtures matching the new schema (no Steam IDs, minimal nested data).
+
 ### Added
 
 - `GET /upload-tokens`, `POST /upload-tokens`, `DELETE /upload-tokens/{tokenId}` for managing per-user upload tokens (Clerk JWT auth). The raw secret is returned only on creation.

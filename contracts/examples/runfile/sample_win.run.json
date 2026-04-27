@@ -1,18 +1,27 @@
 {
-  "schema_version": 1,
-  "run_id": "run_sample_win_001",
-  "character_class": "IRONCLAD",
-  "ascension": 0,
-  "seed": "WINSEED1",
-  "status": "victory",
-  "started_at": "2026-04-26T10:00:00Z",
-  "ended_at": "2026-04-26T11:30:00Z",
-  "floor_reached": 20,
-  "player_id": "76561198063900908",
-  "decks": [
+  "schema_version": 9,
+  "build_id": "v0.103.2",
+  "seed": "ABCDEFGHIJ",
+  "start_time": 1776658411,
+  "run_time": 5371,
+  "was_abandoned": false,
+  "win": true,
+  "ascension": 7,
+  "game_mode": "standard",
+  "platform_type": "steam",
+  "killed_by_encounter": "NONE.NONE",
+  "killed_by_event": "NONE.NONE",
+  "acts": [
+    "ACT.UNDERDOCKS",
+    "ACT.HIVE",
+    "ACT.GLORY"
+  ],
+  "players": [
     {
-      "label": "final",
-      "card_ids": ["bash", "strike", "defend"]
+      "id": "player_anon_0001",
+      "character": "CHARACTER.SCRAP_KNIGHT"
     }
-  ]
+  ],
+  "map_point_history": [],
+  "modifiers": []
 }

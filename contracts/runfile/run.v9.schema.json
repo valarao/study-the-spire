@@ -1,58 +1,87 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "SlayTheSpire2RunFileV9",
-  "description": "First-pass contract for StS2 run export JSON (informally 'v9'). Based on observed Early Access dumps; expect to tighten when canonical game fields are known. Unknown top-level keys are allowed.",
-  "$comment": "Do not set additionalProperties false until real exports are mapped; game may add fields anytime during EA.",
+  "description": "Top-level shape of the StS2 run-file export (informally 'v9'). Field set was derived from the real samples committed at references/run-samples/ — those are the canonical examples. Nested shapes inside `acts`, `players`, and `map_point_history` are not yet enforced and may be tightened in later milestones. `additionalProperties` stays `true` for the EA window since the game may add fields between patches.",
   "type": "object",
-  "required": ["run_id", "status"],
+  "required": [
+    "build_id",
+    "schema_version",
+    "seed",
+    "start_time",
+    "was_abandoned",
+    "win",
+    "ascension",
+    "game_mode",
+    "platform_type",
+    "run_time"
+  ],
   "additionalProperties": true,
   "properties": {
     "schema_version": {
       "type": "integer",
-      "description": "Optional contract marker for this JSON document."
+      "description": "Game-emitted schema version. Observed values: 8 (older patch) and 9 (current). Not enforced strictly — the importer maps both."
     },
-    "run_id": {
+    "build_id": {
       "type": "string",
-      "description": "Stable identifier for this run within the export format."
+      "description": "Game build label, e.g. \"v0.103.2\"."
     },
-    "character_class": {
+    "seed": {
       "type": "string",
-      "description": "Playable character key (game-specific)."
+      "description": "Run seed string."
+    },
+    "start_time": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Unix epoch seconds at run start."
+    },
+    "run_time": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total duration in seconds. Importer derives end time as start_time + run_time."
+    },
+    "was_abandoned": {
+      "type": "boolean",
+      "description": "True if the player abandoned the run. Combined with `win`, encodes outcome: (false,true)=victory, (false,false)=defeat, (true,*)=abandoned."
+    },
+    "win": {
+      "type": "boolean",
+      "description": "True if the run reached a victory condition."
     },
     "ascension": {
       "type": "integer",
       "minimum": 0
     },
-    "seed": {
-      "type": "string"
-    },
-    "status": {
+    "game_mode": {
       "type": "string",
-      "enum": ["victory", "defeat", "abandoned"],
-      "description": "Normalized outcome for fixtures and tests; game exports may use different strings until normalized."
+      "description": "e.g. \"standard\"."
     },
-    "started_at": {
+    "platform_type": {
       "type": "string",
-      "description": "RFC 3339 / ISO 8601 timestamp when present."
+      "description": "e.g. \"steam\"."
     },
-    "ended_at": {
+    "killed_by_encounter": {
       "type": "string",
-      "description": "RFC 3339 / ISO 8601 timestamp when present."
+      "description": "Encounter id that killed the run, e.g. \"ENCOUNTER.PHANTASMAL_GARDENERS_ELITE\". \"NONE.NONE\" when not applicable."
     },
-    "floor_reached": {
-      "type": "integer",
-      "minimum": 0
+    "killed_by_event": {
+      "type": "string",
+      "description": "Event id that killed the run. \"NONE.NONE\" when not applicable."
     },
-    "player_id": {
-      "type": "string"
-    },
-    "decks": {
+    "acts": {
       "type": "array",
-      "description": "Optional snapshot of deck state when present in export.",
-      "items": {
-        "type": "object",
-        "additionalProperties": true
-      }
+      "description": "Ordered list of acts the run progressed through. Inner shape not enforced yet."
+    },
+    "players": {
+      "type": "array",
+      "description": "Per-player state at run end (single-player runs have one element). Inner shape not enforced yet."
+    },
+    "map_point_history": {
+      "type": "array",
+      "description": "Per-act sequence of map points visited and their outcomes. Inner shape not enforced yet."
+    },
+    "modifiers": {
+      "type": "array",
+      "description": "Run modifiers (daily climb, custom seed, etc.). Inner shape not enforced yet."
     }
   }
 }

@@ -1,12 +1,26 @@
 {
-  "schema_version": 1,
-  "run_id": "run_sample_abandon_003",
-  "character_class": "DEFECT",
-  "ascension": 1,
-  "seed": "QUITSEED3",
-  "status": "abandoned",
-  "started_at": "2026-04-25T20:00:00Z",
-  "ended_at": "2026-04-25T20:12:00Z",
-  "floor_reached": 4,
-  "player_id": "76561198063900908"
+  "schema_version": 9,
+  "build_id": "v0.103.2",
+  "seed": "MNOPQRSTUV",
+  "start_time": 1777007901,
+  "run_time": 2352,
+  "was_abandoned": true,
+  "win": false,
+  "ascension": 7,
+  "game_mode": "standard",
+  "platform_type": "steam",
+  "killed_by_encounter": "ENCOUNTER.DECIMILLIPEDE_ELITE",
+  "killed_by_event": "NONE.NONE",
+  "acts": [
+    "ACT.UNDERDOCKS",
+    "ACT.HIVE"
+  ],
+  "players": [
+    {
+      "id": "player_anon_0001",
+      "character": "CHARACTER.SCRAP_KNIGHT"
+    }
+  ],
+  "map_point_history": [],
+  "modifiers": []
 }

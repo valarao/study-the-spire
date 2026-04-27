@@ -37,7 +37,7 @@ find your install. Override with `dotnet build /p:Sts2Path="…/Slay the Spire 2
 ```ini
 [study_the_spire]
 upload_token = stsa_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-endpoint = https://study-the-spire-api-96468418534.us-central1.run.app
+endpoint = https://api.studythespire.com
 enabled = true
 ```
 
@@ -57,6 +57,46 @@ Look for `Ping success: tokenName=…, serverVersion=0.1.0`. If you see
 one in the dashboard.
 
 For backend smoke tests with `curl`, see [`docs/mod-setup.md`](../docs/mod-setup.md).
+
+## Tests
+
+```bash
+dotnet test StudyTheSpire.Tests/StudyTheSpire.Tests.csproj
+```
+
+The test project (`StudyTheSpire.Tests/`) covers pure-logic units —
+`Redactor` and `IniParser` — by including their source files directly via
+`<Compile Include>` rather than referencing the main project. That avoids
+pulling in the StS2 game DLL references the main project needs to compile.
+Both the mod and the tests target `net9.0` (the runtime StS2 hosts), so you
+need the **.NET 9 runtime** installed locally to run tests — even if your
+SDK is newer. Grab it from
+[dotnet.microsoft.com/download/dotnet/9.0](https://dotnet.microsoft.com/download/dotnet/9.0).
+
+CI runs only `dotnet test` on this project — see
+[`.github/workflows/mod-tests.yml`](../.github/workflows/mod-tests.yml).
+
+## Local-only mock backend
+
+When iterating on the mod, point `endpoint` at the local mock so you don't need
+the real Cloud Run deploy:
+
+```bash
+node tools/mock-backend/server.mjs --port 8081
+# then in config.ini: endpoint = http://localhost:8081
+```
+
+See [`tools/mock-backend/README.md`](../tools/mock-backend/README.md) for what
+the mock does and doesn't simulate.
+
+## Known limitations
+
+- **No CI build of the main mod project.** `dotnet build` on
+  `StudyTheSpire.csproj` requires `sts2.dll` and `0Harmony.dll` from a local
+  StS2 install (the `CheckDependencyPaths` MSBuild target enforces this). CI
+  doesn't have StS2, so it can only run unit tests. Lifting this either means
+  committing stub DLLs or splitting the mod into a `StudyTheSpire.Core`
+  project that's free of game references — both are deferred.
 
 ## Notes
 

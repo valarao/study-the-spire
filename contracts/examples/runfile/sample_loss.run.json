@@ -1,14 +1,25 @@
 {
-  "schema_version": 1,
-  "run_id": "run_sample_loss_002",
-  "character_class": "SILENT",
-  "ascension": 3,
-  "seed": "LOSSSEED2",
-  "status": "defeat",
-  "started_at": "2026-04-26T09:00:00Z",
-  "ended_at": "2026-04-26T09:45:00Z",
-  "floor_reached": 12,
-  "player_id": "76561198063900908",
-  "death_floor": 12,
-  "decks": []
+  "schema_version": 8,
+  "build_id": "v0.99.1",
+  "seed": "ZYXWVUTSRQ",
+  "start_time": 1776385547,
+  "run_time": 584,
+  "was_abandoned": false,
+  "win": false,
+  "ascension": 1,
+  "game_mode": "standard",
+  "platform_type": "steam",
+  "killed_by_encounter": "ENCOUNTER.PHANTASMAL_GARDENERS_ELITE",
+  "killed_by_event": "NONE.NONE",
+  "acts": [
+    "ACT.UNDERDOCKS"
+  ],
+  "players": [
+    {
+      "id": "player_anon_0001",
+      "character": "CHARACTER.SCRAP_KNIGHT"
+    }
+  ],
+  "map_point_history": [],
+  "modifiers": []
 }

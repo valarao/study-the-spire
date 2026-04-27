@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <IsPackable>false</IsPackable>
+        <RootNamespace>StudyTheSpire.Tests</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+        <PackageReference Include="xunit" Version="2.9.0" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    </ItemGroup>
+
+    <!--
+        Pull only pure-logic source files from the main mod project. Pulling the
+        whole project would transitively require sts2.dll and 0Harmony.dll, which
+        we explicitly want to avoid in CI.
+    -->
+    <ItemGroup>
+        <Compile Include="..\StudyTheSpire\Logging\Redactor.cs" Link="Logging\Redactor.cs" />
+        <Compile Include="..\StudyTheSpire\Config\IniParser.cs" Link="Config\IniParser.cs" />
+    </ItemGroup>
+
+</Project>
