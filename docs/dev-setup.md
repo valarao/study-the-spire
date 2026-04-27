@@ -23,3 +23,15 @@ To stop and wipe the volume:
 ```bash
 docker compose -f infra/local/docker-compose.yml down -v
 ```
+
+## Web (Next.js)
+
+The dashboard lives in [`web/`](../web/) (Next.js 16, App Router, TypeScript, Tailwind, shadcn/ui).
+
+```bash
+cd web
+pnpm install
+pnpm dev
+```
+
+See [`web/README.md`](../web/README.md) for layout and scripts, and [`docs/web-deploy.md`](web-deploy.md) for Vercel setup.
