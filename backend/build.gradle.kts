@@ -36,6 +36,13 @@ dependencies {
   runtimeOnly("org.postgresql:r2dbc-postgresql")
   // Used in production via the r2dbc:gcp:postgresql:// URL scheme to talk to Cloud SQL.
   runtimeOnly("com.google.cloud.sql:cloud-sql-connector-r2dbc-postgres:1.21.0")
+
+  // Flyway runs SQL migrations on startup. JDBC-only — separate driver from R2DBC.
+  implementation("org.flywaydb:flyway-core:11.2.0")
+  implementation("org.flywaydb:flyway-database-postgresql:11.2.0")
+  implementation("org.postgresql:postgresql:42.7.5")
+  // Cloud SQL JDBC socket factory for prod migrations.
+  implementation("com.google.cloud.sql:postgres-socket-factory:1.21.0")
 }
 
 application {

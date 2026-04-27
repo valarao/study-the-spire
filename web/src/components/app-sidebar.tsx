@@ -24,7 +24,7 @@ const navItems: ReadonlyArray<NavItem> = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { title: "Runs", href: "/dashboard", icon: ListChecks, disabled: true },
   { title: "Stats", href: "/dashboard", icon: BarChart3, disabled: true },
-  { title: "Settings", href: "/dashboard", icon: Settings, disabled: true },
+  { title: "Mod settings", href: "/dashboard/settings/mod", icon: Settings },
 ];
 
 export function AppSidebar() {

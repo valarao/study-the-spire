@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `GET /upload-tokens`, `POST /upload-tokens`, `DELETE /upload-tokens/{tokenId}` for managing per-user upload tokens (Clerk JWT auth). The raw secret is returned only on creation.
+- `Tokens` tag for upload-token management endpoints.
+- `UploadTokenRep`, `UploadTokensListResponse`, `CreateUploadTokenRequest`, `CreateUploadTokenResponse`, `DeleteUploadTokenResponse` schemas.
 - `GET /me` endpoint (Clerk JWT auth) returning `userId` and `email`.
 - `MeResponse` schema in `components/schemas`.
 - `Account` tag for user identity endpoints.

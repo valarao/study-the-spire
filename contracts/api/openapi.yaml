@@ -23,6 +23,8 @@ tags:
     description: Liveness and connectivity probes
   - name: Account
     description: User identity endpoints (Clerk JWT auth)
+  - name: Tokens
+    description: Manage per-user upload tokens (Clerk JWT auth)
   - name: Mod
     description: Mod and upload-token authenticated ingestion
 
@@ -82,6 +84,69 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MeResponse"
+        "401":
+          description: Missing or invalid Clerk JWT
+
+  /upload-tokens:
+    get:
+      tags: [Tokens]
+      summary: List the caller's active upload tokens
+      security:
+        - ClerkJwtAuth: []
+      responses:
+        "200":
+          description: Active tokens (revoked ones are excluded)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadTokensListResponse"
+        "401":
+          description: Missing or invalid Clerk JWT
+    post:
+      tags: [Tokens]
+      summary: Create a new upload token
+      description: |
+        Returns the raw `stsa_live_<secret>` value **once** in the response. The
+        server stores only the SHA-256 hash; if the user loses the secret they
+        must create a new token.
+      security:
+        - ClerkJwtAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUploadTokenRequest"
+      responses:
+        "200":
+          description: Token created; secret is returned exactly once
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateUploadTokenResponse"
+        "401":
+          description: Missing or invalid Clerk JWT
+
+  /upload-tokens/{tokenId}:
+    delete:
+      tags: [Tokens]
+      summary: Revoke an upload token
+      security:
+        - ClerkJwtAuth: []
+      parameters:
+        - in: path
+          name: tokenId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Revocation result; `ok` is `false` if the token is unknown or already revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteUploadTokenResponse"
         "401":
           description: Missing or invalid Clerk JWT
 
@@ -207,6 +272,63 @@ components:
           type: string
           nullable: true
           example: "miguel@example.com"
+
+    UploadTokenRep:
+      type: object
+      required: [id, name, tokenPrefix, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Desktop
+        tokenPrefix:
+          type: string
+          description: First 14 chars of the token, safe to display.
+          example: stsa_live_AbCd
+        createdAt:
+          type: string
+          format: date-time
+        lastUsedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    UploadTokensListResponse:
+      type: object
+      required: [tokens]
+      properties:
+        tokens:
+          type: array
+          items:
+            $ref: "#/components/schemas/UploadTokenRep"
+
+    CreateUploadTokenRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          example: Desktop
+
+    CreateUploadTokenResponse:
+      type: object
+      required: [token, secret]
+      properties:
+        token:
+          $ref: "#/components/schemas/UploadTokenRep"
+        secret:
+          type: string
+          description: Raw token value. Returned only on creation.
+          example: stsa_live_AbCdEfGhIjKlMnOpQrStUvWxYz1234567890_AbCd
+
+    DeleteUploadTokenResponse:
+      type: object
+      required: [ok]
+      properties:
+        ok:
+          type: boolean
 
     HelloResponse:
       type: object
