@@ -21,6 +21,8 @@ jobs:
         with:
           fetch-depth: 0  # need full history for the changelog diff check
       - uses: pnpm/action-setup@v4
+        with:
+          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
