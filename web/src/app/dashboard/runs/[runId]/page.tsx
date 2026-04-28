@@ -47,7 +47,6 @@ export default async function RunDetailPage({
   }
 
   const { run, rawJson, fileName } = (await res.json()) as RunDetailRep;
-  const prettyJson = prettyPrint(rawJson);
 
   return (
     <div className="space-y-6">
@@ -90,7 +89,7 @@ export default async function RunDetailPage({
           Raw run-file JSON
         </summary>
         <pre className="bg-muted/30 max-h-[60vh] overflow-auto px-3 py-2 text-xs leading-relaxed">
-          <code>{prettyJson}</code>
+          <code>{rawJson}</code>
         </pre>
       </details>
     </div>
@@ -147,10 +146,3 @@ function formatAbsolute(iso: string): string {
   return d.toLocaleString();
 }
 
-function prettyPrint(json: string): string {
-  try {
-    return JSON.stringify(JSON.parse(json), null, 2);
-  } catch {
-    return json;
-  }
-}

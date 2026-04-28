@@ -77,10 +77,12 @@ internal object StatsApi {
 }
 
 internal object ImportsApi {
+  // Body is intentionally not declared here — the handler reads it via
+  // `call.receiveText()` to bypass Kairo/Jackson, which round-trips JSON
+  // numbers through a representation that drops precision on 17-digit
+  // SteamID64s in `players[].id` (e.g. ...908 → ...910).
   @Rest("POST", "/imports/run-file")
   @Rest.ContentType("application/json")
   @Rest.Accept("application/json")
-  data class Post(
-    override val body: String,
-  ) : RestEndpoint<String, ImportRunFileRep>()
+  data object Post : RestEndpoint<Unit, ImportRunFileRep>()
 }

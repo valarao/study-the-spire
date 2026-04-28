@@ -92,9 +92,10 @@ public partial class StudyTheSpire : Node
         log.Info($"Starting run-file watcher across {historyDirs.Count} profile(s).");
         foreach (var historyDir in historyDirs)
         {
+            var steamId = historyDir.SteamId;
             var w = new RunFileWatcher(
-                historyDir: historyDir,
-                onFileReady: file => uploader.UploadAsync(file),
+                historyDir: historyDir.Path,
+                onFileReady: file => uploader.UploadAsync(file, steamId),
                 log: log);
             w.Start();
             w.EnumerateExisting();

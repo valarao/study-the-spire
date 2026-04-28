@@ -327,6 +327,11 @@ paths:
         `contracts/runfile/run.v9.schema.json` before upload when possible. Optional
         `X-Run-File-Name` header preserves the source file name (e.g. `1776658411.run`).
 
+        Optional `X-Local-Player-Id` header carries the uploader's SteamID64 (parsed
+        by the mod from the file path: `steam/<steamId>/profile<n>/saves/history/`).
+        Co-op runs include every lobby player in `players[]`; the importer uses this
+        header to pick the matching entry, falling back to `players[0]` when absent.
+
         Idempotent on `(user, sha256(body))`: re-uploading the same file returns
         `imported: false` with the existing `runId`.
       security:
@@ -337,6 +342,12 @@ paths:
           required: false
           schema:
             type: string
+        - in: header
+          name: X-Local-Player-Id
+          required: false
+          schema:
+            type: string
+            example: "76561198153651735"
       requestBody:
         required: true
         content:

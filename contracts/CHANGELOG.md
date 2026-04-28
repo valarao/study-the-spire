@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `POST /imports/run-file` now documents `X-Local-Player-Id` header. The mod sends the uploader's SteamID64 so the importer can pick the right player out of co-op `players[]` arrays; absent header falls back to `players[0]` (single-player and pre-fix uploads).
 - `GET /stats/summary` returning aggregate stats (totals, win rate, per-character + per-ascension breakdowns, top death causes) for the authenticated user.
 - `Stats` tag for stats endpoints.
 - `StatsSummaryResponse`, `CharacterStat`, `AscensionStat`, `DeathCauseStat` schemas.

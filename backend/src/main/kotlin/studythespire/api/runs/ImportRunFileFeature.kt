@@ -1,6 +1,7 @@
 package studythespire.api.runs
 
 import io.ktor.server.application.Application
+import io.ktor.server.request.receiveText
 import io.ktor.server.routing.routing
 import kairo.feature.Feature
 import kairo.rest.HasRouting
@@ -20,14 +21,16 @@ internal class ImportRunFileFeature(
         auth { auth.authenticate(call) }
         handle {
           val token = call.attributes[UploadTokenAuth.UploadTokenKey]
-          val rawJson = endpoint.body
+          val rawJson = call.receiveText()
           val sha = sha256Hex(rawJson)
           val fileName = call.request.headers["X-Run-File-Name"]
+          val localPlayerId = call.request.headers["X-Local-Player-Id"]
           val result = runs.importRun(
             userId = token.userId,
             sha256 = sha,
             fileName = fileName,
             rawJson = rawJson,
+            localPlayerId = localPlayerId,
           )
           when (result) {
             is ImportResult.Inserted -> ImportRunFileRep(imported = true, runId = result.runId.toString())
