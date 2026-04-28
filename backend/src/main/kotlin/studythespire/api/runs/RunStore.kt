@@ -46,6 +46,7 @@ internal class RunStore(
     sha256: String,
     fileName: String?,
     rawJson: String,
+    localPlayerId: String? = null,
   ): ImportResult = suspendTransaction(db = database) {
     val existing = RunImportsTable
       .select(RunImportsTable.id)
@@ -61,7 +62,7 @@ internal class RunStore(
       return@suspendTransaction ImportResult.Duplicate(RunId(runRow[RunsTable.id]))
     }
 
-    val parsed = parseRunFile(rawJson)
+    val parsed = parseRunFile(rawJson, localPlayerId)
     val now = Clock.System.now()
     val newImportId = Uuid.random()
     val newRunId = Uuid.random()
@@ -226,13 +227,23 @@ internal class RunStore(
       )
     }
 
-  private fun parseRunFile(rawJson: String): ParsedRun {
+  private fun parseRunFile(rawJson: String, localPlayerId: String?): ParsedRun {
     val obj = json.parseToJsonElement(rawJson).jsonObject
     val wasAbandoned = obj.requireBool("was_abandoned")
     val win = obj.requireBool("win")
     val players = obj["players"] as? JsonArray
-    val firstPlayer = players?.firstOrNull() as? JsonObject
-    val characterClass = firstPlayer?.optString("character")
+    // Co-op runs include every lobby player in `players[]`, so we match on the
+    // uploader's Steam ID when the mod sends one. Falling back to index 0 keeps
+    // single-player and pre-header uploads working.
+    val localPlayer = players?.let { p ->
+      localPlayerId?.let { id ->
+        p.firstOrNull { el ->
+          val pid = (el as? JsonObject)?.get("id") as? kotlinx.serialization.json.JsonPrimitive
+          pid?.content == id
+        } as? JsonObject
+      } ?: (p.firstOrNull() as? JsonObject)
+    }
+    val characterClass = localPlayer?.optString("character")
 
     return ParsedRun(
       status = RunStatus.derive(wasAbandoned = wasAbandoned, win = win),

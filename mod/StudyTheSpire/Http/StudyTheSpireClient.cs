@@ -70,6 +70,7 @@ internal sealed class StudyTheSpireClient
         string rawJson,
         string fileName,
         string sha256,
+        string localPlayerId,
         CancellationToken ct = default)
     {
         if (_disabled) return null;
@@ -80,6 +81,7 @@ internal sealed class StudyTheSpireClient
                 var content = new StringContent(rawJson, System.Text.Encoding.UTF8, "application/json");
                 var req = new HttpRequestMessage(HttpMethod.Post, "imports/run-file") { Content = content };
                 req.Headers.TryAddWithoutValidation("X-Run-File-Name", fileName);
+                req.Headers.TryAddWithoutValidation("X-Local-Player-Id", localPlayerId);
                 return _http.SendAsync(req, ct);
             },
             classify: r => ClassifyImport(r, fileName),

@@ -26,7 +26,7 @@ internal sealed class RunFileUploader
         _log = log;
     }
 
-    public async Task UploadAsync(FileInfo file, CancellationToken ct = default)
+    public async Task UploadAsync(FileInfo file, string localPlayerId, CancellationToken ct = default)
     {
         string text;
         try
@@ -53,7 +53,7 @@ internal sealed class RunFileUploader
             return;
         }
 
-        var result = await _client.UploadRunFileAsync(text, file.Name, sha, ct).ConfigureAwait(false);
+        var result = await _client.UploadRunFileAsync(text, file.Name, sha, localPlayerId, ct).ConfigureAwait(false);
         if (result is null)
         {
             // Client logged the failure (401/4xx/exhausted retries). Leave cache alone — retry next session.
